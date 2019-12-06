@@ -1,0 +1,261 @@
+<template>
+  <!-- template里只能有一个根节点 -->
+  <div class="demo-page">
+    <text class="title">{{text}}</text>
+    <input class="btnDialog" type="button" value="Get请求" onclick="getRequest" />
+    <input class="btnDialog" type="button" value="Post请求" onclick="postRequest" />
+    <input class="btnDialog" type="button" value="Post Json请求" onclick="postJsonRequest" />
+    <input class="btnDialog" type="button" value="Post Map请求" onclick="postMapRequest" />
+    <input class="btnDialog" type="button" value="storage存数据" onclick="storageSetData" />
+    <input class="btnDialog" type="button" value="storage取数据" onclick="storageGetData" />
+    <input class="btnDialog" type="button" value="分享" onclick="shareData" />
+    <input class="btn" type="button" value="返回上一页" onclick="routeBack" />
+  </div>
+</template>
+
+<script>
+import router from '@system.router'
+import prompt from '@system.prompt'
+import fetch from '@system.fetch'
+import storage from '@system.storage'
+import share from '@system.share'
+export default {
+  
+  private: {
+    text: '网络和文件页',
+    isRefresh: false
+  },
+  onInit() {
+    console.info(`request :: onInit...`)
+  },
+  routeBack() {
+    router.back()
+  },
+  // Http Get Reuqest
+  getRequest() {
+    // 传统写法，过于冗余，结构不清晰
+    // fetch.fetch({
+    //   url: 'http://api.sugg.sogou.com/su?type=wap&key=%E5%85%AB&fmt=1',
+    //   method: 'GET',
+    //   responseType: 'text',
+    //   success: function(data) {
+    //     if(data.code == 200) {
+    //       prompt.showToast({
+    //         message: 'response success ==> data is ' + data.data
+    //       })
+    //     } else {
+    //       prompt.showToast({
+    //         message: 'response fail ==> code is ' + data.code + ', data is ' + data
+    //       })
+    //     }
+    //   },
+    //   fail: function(data, code) {
+    //     prompt.showToast({
+    //       message: 'response fail ==> code is ' + code + ', data is ' + data
+    //     })
+    //   }
+    // })
+
+    // lambla表达式，且是链式调用的结构，清晰明了
+    fetch.fetch({
+      url: 'http://api.sugg.sogou.com/su?type=wap&key=%E5%85%AB&fmt=1',
+      method: 'GET',
+      responseType: 'text'
+    }).then(response => {
+      prompt.showToast({
+        message: 'response success ==> data is ' + response.data.data
+      })
+    }).catch(error => {
+      prompt.showToast({
+        message: 'response fail ==> code is ' + error.code + ', data is ' + error.message
+      })
+    })
+  },
+  // Http post request
+  postRequest() {
+    var params = {
+      username: '18565623857',
+      password: '19900201y'
+    }
+    fetch.fetch({
+      url: 'https://www.wanandroid.com/user/login',
+      responseType: 'text',
+      method: 'POST',
+      data: params,
+      success: function(data) {
+        prompt.showToast({
+          message: data.data
+        })
+      },
+      fail: function(data, code) {
+        prompt.showToast({
+          message: code + ', ' + data.message
+        })
+      },
+    })
+  },
+  // Http post json request
+  postJsonRequest() {
+    var requestData = {PageID : "A", Type : "RAD"}
+    fetch.fetch({
+      url: 'https://appstore-api-it.n-mobile.com/api/AppService/GetPage',
+      method: 'post',
+      responseType: 'json',
+      data: JSON.stringify(requestData),
+      header: {'Content-Type': 'application/json; charset=UTF-8' }
+    }).then(response => {
+      console.info('response success => ' + JSON.stringify(response))
+    }).catch(error => {
+      console.info('response fail => code is ' + error.code + ', message is ' + error.message)
+    })
+  },
+  // Http post form request
+  postMapRequest() {
+    var imei = '353015080014070'
+    var appKey = 'ed07a6d886542d4c2f085d44518d183b'
+    var timestamp = new Date().getTime()
+    var pid = 'njybs'
+    var nonce = JSON.stringify(8223072036854775808)
+    var commonContent = 'nonce=' + nonce + 'pid=' + pid + 'timestamp=' + timestamp + 'uuid=' + uuid + appKey
+    var singnature = this.getMD5(commonContent)
+    console.info('singnature => ' + singnature)
+    var uuid = this.getMD5(imei)
+    var bid = timestamp + nonce + uuid
+
+    var params = {
+      // common info
+      signature: singnature,
+      timestamp: timestamp,
+      nonce: nonce,
+      pid: pid,
+      uuid: uuid,
+      pver: '2',
+      bid: bid,
+      // device info
+      imei:imei,
+      os: 'Android',
+      os_version: '8.0',
+      device_brand: 'SHARP',
+      model: 'SHARP',
+      dt: 'SHARP',
+      app_vname: '1.0',
+      app_vcode: '1',
+      sdk_version: '1.6',
+      // specify info
+      channel: '100',
+      net: '',
+      lbs: '{}',
+      params: '1',
+      resolution: '1920x1280',
+      action: this.isRefresh ? '9' : '10',
+    }
+
+    fetch.fetch({
+      url: 'http://feeds.antuzhi.com/is/api/v1/stream',
+      method: 'post',
+      data: params,
+      responseType: 'json',
+      header: {'Content-Type': 'application/x-www-form-urlencoded' }
+    }).then(response => {
+      console.info('postMapRequest response success => ' + JSON.stringify(response))
+    }).catch(error => {
+      console.info('postMapRequest response fail => code is ' + error.code + ', message is ' + error.message)
+    })
+  },
+  getMD5(encode) {
+    var md5 = require('md5')
+    return md5(encode) 
+  },
+  storageSetData() {
+    storage.set({
+      key: 'test',
+      value: 'test value',
+      success: function() {
+        prompt.showToast({
+          message: 'storage success'
+        })
+      },
+      fail:function(data, code) {
+        prompt.showToast({
+          message: 'storage fail'
+        })
+      }
+    })
+  },
+  storageGetData() {
+    storage.get({
+      key: 'test',
+      default: 'null',
+      success: function(data) {
+        prompt.showToast({
+          message: 'get success ' + data
+        })
+      },
+      fail:function(data, code) {
+        prompt.showToast({
+          message: 'get fail ' + code
+        })
+      }
+    })
+  },
+  shareData() {
+    share.share({
+      type: 'text/html',
+      data: 'my test share',
+      success: function(data) {
+        prompt.showToast({
+          message: 'share success ' + data
+        })
+      },
+      fail: function(data, code) {
+        prompt.showToast({
+          message: 'share fail ' + code
+        })
+      },
+      cancel: function() {
+        prompt.showToast({
+          message: 'share cancel '
+        })
+      },
+      complete: function() {
+        prompt.showToast({
+          message: 'share complete '
+        })
+      }
+    })
+  }
+}
+</script>
+
+<style>
+  .demo-page {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .title {
+    font-size: 40px;
+    text-align: center;
+  }
+
+  .btn {
+    width: 550px;
+    height: 86px;
+    margin-top: 16px;
+    border-radius: 43px;
+    background-color: rgb(186, 7, 16);
+    font-size: 30px;
+    color: #ffffff;
+  }
+
+  .btnDialog {
+    width: 550px;
+    height: 86px;
+    margin-top: 16px;
+    border-radius: 43px;
+    background-color: #09ba07;
+    font-size: 30px;
+    color: #ffffff;
+  }
+</style>

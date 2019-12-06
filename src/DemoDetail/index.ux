@@ -1,0 +1,157 @@
+<template>
+  <!-- template里只能有一个根节点 -->
+  <div class="demo-page">
+    <text class="title">{{text}}</text>
+    <input class="btnDialog" type="button" value="Router" onclick="multiRouter" />
+    <input class="btnDialog" type="button" value="内文菜单" onclick="showContextMenu" />
+    <input class="btnDialog" type="button" value="对话框和Toast" onclick="showDialog" />
+    <input class="btn" type="button" value="返回上一页" onclick="routeBack" />
+  </div>
+</template>
+
+<script>
+import router from '@system.router'
+import prompt from '@system.prompt'
+export default {
+  
+  private: {
+    text: '当前页面是详情页',
+    singers: ['周杰伦', '陈奕迅', '张学友']
+  },
+  /**
+   * 当用户点击菜单按钮时触发，调用app中定义的方法showMenu
+   * 注意：使用加载器测试`创建桌面快捷方式`功能时，请先在`系统设置`中打开`应用加载器`的`桌面快捷方式`权限
+   */
+  onMenuPress() {
+    this.$app.$def.showMenu()
+  },
+  onInit() {
+    console.info(`detail :: onInit...`)
+  },
+  onShow() {
+      console.info(`detail :: onShow...`)
+  },
+  onHide() {
+      console.info(`detail :: onHide...`)
+  },
+  showDialog() {
+    prompt.showDialog({
+      title: '测试',
+      message: '这是一个测试对话框',
+      buttons: [
+        {
+          text: '确定',
+          color: '#000000'
+        },
+        {
+          text: '取消',
+          color: '#FF0000'
+        }
+      ],
+      success: function(data) {
+        // 使用"data.index"来区分点击的是哪一个按钮
+        switch(data.index) {
+        case 0:
+          prompt.showToast({
+            message: 'dialog :: confirm success...'
+          })
+          break
+        case 1:
+          prompt.showToast({
+            message: 'dialog :: cancel success...'
+          })
+          break 
+        }
+      },
+      cancel: function() {
+        prompt.showToast({
+          message: 'dialog :: cancel...'
+        })
+      }
+    })  
+  },
+  showContextMenu() {
+    prompt.showContextMenu({
+      itemList: this.singers,
+      itemColor: '#000000',
+      success: function(data) {
+        prompt.showToast({
+          message: 'Context Menu choose ' + data.index
+        })
+      },
+      cancel: function() {
+        prompt.showToast({
+          message: 'Context Menu cancel'
+        })
+      },
+      complete: function() {
+        prompt.showToast({
+          message: 'Context Menu complete'
+        })
+      }
+    })
+  },
+  routeBack() {
+    router.back()
+  },
+  multiRouter() {
+    // 打开百度网页
+    // router.push({
+    //   uri: 'https://www.baidu.com'
+    // })
+
+    // 拨打电话
+    // router.push({
+    //   uri: 'tel:10086'
+    // })
+
+    // 发送短信
+    // router.push({
+    //   uri: 'sms:10086',
+    //   params: {
+    //     body: 'This is a test message.'
+    //   }
+    // })
+
+    router.push({
+      uri: '/About',
+      // params: {
+      //   ___PARAM_LAUNCH_FLAG___: 'clearTask'
+      // }
+    })
+  }
+}
+</script>
+
+<style>
+  .demo-page {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .title {
+    font-size: 40px;
+    text-align: center;
+  }
+
+  .btn {
+    width: 550px;
+    height: 86px;
+    margin-top: 75px;
+    border-radius: 43px;
+    background-color: rgb(186, 7, 16);
+    font-size: 30px;
+    color: #ffffff;
+  }
+
+  .btnDialog {
+    width: 550px;
+    height: 86px;
+    margin-top: 75px;
+    border-radius: 43px;
+    background-color: #09ba07;
+    font-size: 30px;
+    color: #ffffff;
+  }
+</style>

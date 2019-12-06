@@ -1,0 +1,111 @@
+
+<template>
+  <div class="demo-page">
+      <text class="header">{{mychannel}}</text>
+      <list class="channel-list">
+        <block for="channelList">
+          <list-item type="text" >
+            <text class="main-title" onclick="unselect($item)">{{$item.typeName}}</text>
+          </list-item>
+        </block>
+      </list>
+      <div style="flex-direction: column;">
+        <text class="header">{{unselected}}</text>
+        <list class="channel-list">
+          <block for="unselectedChannels">
+            <list-item type="text" >
+              <text class="main-title" onclick="select($item)">{{$item.typeName}}</text>
+            </list-item>
+          </block>
+        </list>
+      </div>
+  </div>
+</template>
+
+<script>
+import prompt from '@system.prompt'
+import storage from '@system.storage'
+export default {
+  private: {
+    mychannel: '我的频道',
+    unselected: '点击添加频道',
+    channelList: [],
+    unselectedChannels: []
+  },
+  onInit() {
+    console.info('onInit...')
+    this.fetchChannelsFromStorage()
+  },
+  async fetchChannelsFromStorage() {
+    JSON.stringify
+    try {
+      const channels = await storage.get({key: 'channels'})
+      const dischannels = await storage.get({key: 'dischannels'})
+      this.channelList = JSON.parse(channels.data)
+      this.unselectedChannels = JSON.parse(dischannels.data)
+    } catch(err) {
+      console.info('fetch 失败 code: ', err.code)
+    }
+  },
+  unselect(item) {
+    var positsion = this.channelList.indexOf(item)
+    this.channelList.splice(positsion, 1)
+    this.unselectedChannels.push(item)
+    storage.set({
+      key: 'channels',
+      value: JSON.stringify(this.channelList)
+    })
+    storage.set({
+      key: 'dischannels',
+      value: JSON.stringify(this.unselectedChannels)
+    })
+  },
+  select(item) {
+    var positsion = this.unselectedChannels.indexOf(item)
+    this.unselectedChannels.splice(positsion, 1)
+    this.channelList.push(item)
+    storage.set({
+      key: 'channels',
+      value: JSON.stringify(this.channelList)
+    })
+    storage.set({
+      key: 'dischannels',
+      value: JSON.stringify(this.unselectedChannels)
+    })
+  },
+  onDestroy() {
+  },
+
+}
+</script>
+
+<style>
+  .demo-page {
+    flex-direction: column;
+    /* justify-content: center;
+    align-items: center; */
+  }
+
+  .header {
+    padding: 16px;
+    height: 80px;
+    width: 100%;
+    color: #000000;
+    font-weight: 800;
+  }
+
+  .main-title {
+    font-size: 30px;
+    height: 80px;
+    width: 100%;
+    padding: 16px;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .channel-list {
+    height: 400px;
+    columns: 4;
+  }
+
+</style>

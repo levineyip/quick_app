@@ -1,0 +1,226 @@
+
+<template>
+  <!-- List的使用规范：
+        1. list-item内不能再嵌套list
+        2. list-item的type属性为必填属性
+        3. list-item内部需谨慎使用if指令或for指令，因为相同type属性的list-item的 DOM 结构必须完全相同，而使用if指令或for指令会造成 DOM 结构差异
+   -->
+   <!-- 按照Android设计来说，List一般会搭配下拉刷新(使用<refresh>标签)和上滑加载更多(使用<list-item>标签，其内包含《progress>标签等) -->
+  <div class="demo-page">
+    <refresh onrefresh="refreshNews()" refreshing="{{isRefreshing}}">
+      <list  onscrollbottom="loadMoreNews()" scrollpage="{{scrollPage}}">
+        <block for="newsList">
+          <list-item type="vedio" class="sub-list-item" if="{{$item.videoList}}">
+            <text class="main-title">{{$item.title}}</text>
+            <div class="source">
+              <text class="author-title">{{$item.source}}</text>
+              <text class="date-time">{{$item.postTime}}</text>
+            </div>
+            <block for="{{$item.videoList}}">
+              <video poster="{{$item.imgList}}" class="vedio-size" autoplay=false s src="{{$item}}"></video>
+            </block>
+            <text class="divider-line"/>
+          </list-item>
+
+          <list-item type="text" class="sub-list-item" onclick="openDetails($item.newsId)" else>
+            <text class="main-title">{{$item.title}}</text>
+            <div class="source">
+              <text class="author-title">{{$item.source}}</text>
+              <text class="date-time">{{$item.postTime}}</text>
+            </div>
+            <block for="$item.imgList">
+              <image src="{{$item}}" class="sub-image"></image>
+            </block>
+            <text class="divider-line"/>
+          </list-item>
+        </block>
+
+        <list-item type="loadMore" class="load-more" if="{{loadMore}}">
+            <progress type="circular"></progress>
+            <text>加载更多</text>
+        </list-item>
+      </list>
+    </refresh>
+  </div>
+</template>
+
+<script>
+import fetch from '@system.fetch'
+import prompt from '@system.prompt'
+import router from '@system.router'
+export default {
+  data: {
+    newsList: [],
+    currentPage: 1,
+    loadMore: false,
+    scrollPage: false,
+    scrollable: true,
+    isRefreshing: true,
+  },
+  props: [
+    'typeid'
+  ],
+  onInit() {
+    this.refreshNews({isRefreshing: true})
+    console.info('onInit...'+this.typeid)
+  },
+  onShow() {
+    console.info('onShow...'+this.typeid)
+  },
+  onHide() {
+    console.info('onHide...'+this.typeid)
+  },
+  fetchNews(isRefresh) {
+    var url = 'https://www.mxnzp.com/api/news/list?typeId='+ this.typeid +'&page=' + this.currentPage
+    // console.info('url => ' + url)
+    fetch.fetch({
+      url: url,
+      method: 'GET',
+      responseType: 'json',
+    }).then(response => {
+      if(isRefresh) {
+        this.isRefreshing = false
+        this.newsList = response.data.data.data
+      } else {
+        this.newsList = this.newsList.concat(response.data.data.data)
+      }
+      this.currentPage++
+    }).catch(error => {
+      prompt.showToast({
+        message: 'response fail ==> code is ' + error.code + ', message is ' + error.message
+      })
+    })
+  },
+  refreshNews(evt) {
+    this.currentPage = 1
+    this.isRefreshing = evt.isRefreshing
+    this.fetchNews(true)
+  },
+  loadMoreNews() {
+    this.fetchNews(false)
+  },
+  openDetails(newsId) {
+    if(newsId) {
+      router.push({
+        uri: '/ui/Details',
+        params: {
+          newsId: newsId
+        }
+      })
+    } else {
+      prompt.showToast({
+        message: 'newsId is null'
+      })
+    }
+  },
+
+}
+</script>
+
+<style>
+  .demo-page {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .btnDialog {
+    width: 550px;
+    height: 86px;
+    margin-top: 16px;
+    border-radius: 43px;
+    background-color: #09ba07;
+    font-size: 30px;
+    color: #ffffff;
+  }
+
+  .title {
+    font-size: 60px;
+    height: 100px;
+    padding: 16px
+  }
+
+  .sub-title {
+    font-size: 30px;
+    height: 100px;
+    padding: 16px
+  }
+
+  .date-time {
+    font-size: 24px;
+    height: 50px;
+    width: 40%;
+    padding: 16px;
+    font-style: normal;
+    font-weight: 800;
+    color: #808080;
+    text-align: right;
+  }
+
+  .main-title {
+    lines: 1;
+    font-size: 30px;
+    height: 50px;
+    padding: 16px;
+    font-weight: 800;
+    text-overflow: ellipsis;
+  }
+
+  .author-title {
+    font-size: 24px;
+    height: 50px;
+    width: 60%;
+    padding: 16px;
+    font-style: normal;
+    font-weight: 800;
+    color: #db9b23;
+  }
+
+  .bg-red {
+      flex-grow: 1;
+      left: 16px;
+      background-color: #f76160;
+    }
+
+    .bg-green {
+      flex-grow: 1;
+      left: 16px;
+      background-color: #179c17;
+    }
+
+  .bg-blue {
+      flex-grow: 1;
+      left: 16px;
+      background-color: #0faeff;
+    }
+
+  .load-more {
+    justify-content: center;
+    align-items: center;
+  }
+
+  .sub-list-item {
+    flex-direction: column;
+    margin-top: 16px;
+  }
+
+  .sub-image {
+    width: 100%;
+    height: 500px;
+    object-fit: contain;
+    padding: 16px;
+  }
+
+  .divider-line {
+    margin: 16px;
+    height: 1px;
+    width: 100%;
+    background-color: #000000;
+  }
+
+  .vedio-size {
+    width: 100%;
+    height: 400px;
+  }
+
+</style>

@@ -1,0 +1,77 @@
+<template>
+  <!-- template里只能有一个根节点 -->
+  <div class="demo-page">
+    <text class="title">{{text}}</text>
+    <input class="btnDialog" type="button" value="获取APP信息" onclick="getAppInfo" />
+    <input class="btnDialog" type="button" value="获取设备信息" onclick="getDeviceInfo" />
+    <input class="btn" type="button" value="返回上一页" onclick="routeBack" />
+  </div>
+</template>
+
+<script>
+import router from '@system.router'
+import prompt from '@system.prompt'
+import device from '@system.device'
+import app from '@system.app'
+export default {
+  
+  private: {
+    text: '当前页面用于获取手机设备信息和APP信息',
+  },
+  onInit() {
+    console.info(`request :: onInit...`)
+  },
+  routeBack() {
+    router.back()
+  },
+  getAppInfo() {
+    prompt.showToast({
+      message: app.getInfo().name // 使用app.getInfo()获取应用信息
+    })
+  },
+  getDeviceInfo() {
+    // 使用device.getInfo(obj)获取设备信息，是一个异步的方法
+    device.getInfo({
+      success: function(data) {
+        prompt.showToast({
+          message: 'brand=' + data.brand + '， osVersionName=' + data.model + '， osVersionName=' + data.osVersionName
+                   + '， platformVersionName=' + data.platformVersionName + '， manufacturer=' + data.manufacturer
+        })
+      }
+    })
+  }
+}
+</script>
+
+<style>
+  .demo-page {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .title {
+    font-size: 35px;
+    text-align: center;
+  }
+
+  .btn {
+    width: 550px;
+    height: 86px;
+    margin-top: 75px;
+    border-radius: 43px;
+    background-color: rgb(186, 7, 16);
+    font-size: 30px;
+    color: #ffffff;
+  }
+
+  .btnDialog {
+    width: 550px;
+    height: 86px;
+    margin-top: 75px;
+    border-radius: 43px;
+    background-color: #09ba07;
+    font-size: 30px;
+    color: #ffffff;
+  }
+</style>

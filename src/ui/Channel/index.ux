@@ -1,0 +1,250 @@
+
+<template>
+  <div class="demo-page">
+      <tabs class="tabs" index="0">
+        <tab-bar mode="scrollable" class="tab-bar">
+            <block for="channelList">
+              <text class="tab-text">{{$item.typeName}}</text>
+            </block>
+            <text class="empty-view"></text>
+            <image src="../../Common/ic_more_channel.png" class="channel-manage" onclick="openChannelMgr"></image>
+        </tab-bar>
+
+        <tab-content class="tab-content" >
+          <block for="channelList">
+            <news typeid="{{$item.typeId}}"></news>
+          </block>
+        </tab-content>
+      </tabs>
+  </div>
+</template>
+
+<import name="news" src="../List/index.ux"></import>
+
+<script>
+import fetch from '@system.fetch'
+import prompt from '@system.prompt'
+import router from '@system.router'
+import storage from '@system.storage'
+
+export default {
+  private: {
+    channelList: [],
+    currentPage: 1,
+    hasMoreData: true,
+    isRefreshing: false,
+  },
+  onInit() {
+    // this.fetchChannelsFromStorage()
+  },
+  onShow() {
+    // console.info('onShow......')
+    this.fetchChannelsFromStorage()
+  },
+  fetchChannelsFromWeb() {
+    fetch.fetch({
+      url: 'https://www.mxnzp.com/api/news/types',
+      method: 'GET',
+      responseType: 'json',
+    }).then(response => {
+      this.channelList = this.channelList.concat(response.data.data.data)
+      this.saveChannelsToStorage(JSON.stringify(this.channelList))
+    }).catch(error => {
+      prompt.showToast({
+        message: 'response fail ==> code is ' + error.code + ', message is ' + error.message
+      })
+    })
+  },
+  async fetchChannelsFromStorage() {
+    try {
+      const response = await storage.get({key: 'channels'})
+      if(response.data && response.data != '') {
+        // console.info('onShow......'+JSON.stringify(response.data))
+        this.channelList = JSON.parse(response.data)
+      } else {
+        // console.info('response is null......')
+        this.fetchChannelsFromWeb()
+      }
+    } catch (error) {
+      // console.info('error......'+JSON.stringify(error))
+      this.fetchChannelsFromWeb()
+    }
+  },
+  saveChannelsToStorage(value) {
+    storage.set({
+      key: 'channels',
+      value: value,
+      success: function() {
+        prompt.showToast({
+          message: '频道保存成功'
+        })
+      }
+    })
+  },
+  openDetails(newsId) {
+    if(newsId) {
+      router.push({
+        uri: '/ui/Details',
+        params: {
+          newsId: newsId
+        }
+      })
+    } else {
+      prompt.showToast({
+        message: 'newsId is null'
+      })
+    }
+  },
+  openChannelMgr() {
+    router.push({
+      uri: '/ui/ChannelMgr'
+    })
+  }
+
+}
+</script>
+
+<style>
+  .demo-page {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .tab-header {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .btnDialog {
+    width: 550px;
+    height: 86px;
+    margin-top: 16px;
+    border-radius: 43px;
+    background-color: #09ba07;
+    font-size: 30px;
+    color: #ffffff;
+  }
+
+  .title {
+    font-size: 60px;
+    height: 100px;
+    padding: 16px
+  }
+
+  .sub-title {
+    font-size: 30px;
+    height: 100px;
+    padding: 16px
+  }
+
+  .date-time {
+    font-size: 24px;
+    height: 50px;
+    padding: 16px;
+    font-style: normal;
+    font-weight: 800;
+    color: #808080;
+    text-align: right;
+  }
+
+  .main-title {
+    font-size: 30px;
+    height: 50px;
+    padding: 16px;
+    font-weight: 800;
+    text-overflow: ellipsis;
+  }
+
+  .author-title {
+    font-size: 24px;
+    height: 50px;
+    padding: 16px;
+    font-style: normal;
+    font-weight: 800;
+    color: #db9b23;
+  }
+
+  .bg-red {
+      flex-grow: 1;
+      left: 16px;
+      background-color: #f76160;
+    }
+
+    .bg-green {
+      flex-grow: 1;
+      left: 16px;
+      background-color: #179c17;
+    }
+
+  .bg-blue {
+      flex-grow: 1;
+      left: 16px;
+      background-color: #0faeff;
+    }
+
+  .load-more {
+    justify-content: center;
+    align-items: center;
+  }
+
+  .sub-list-item {
+    flex-direction: column;
+    margin-top: 16px;
+  }
+
+  .sub-image {
+    width: 100%;
+    height: 500px;
+    object-fit: contain;
+    padding: 16px;
+  }
+
+  .source-item {
+    flex-direction: row;
+  }
+
+  .tabs {
+    flex: 1;
+    margin-top: 20px;
+    margin-right: 30px;
+    margin-left: 30px;
+    background-color: #ffffff;
+  }
+  .tab-bar {
+    height: 70px;
+    margin-right: 16px;
+    width: 100%;
+    border-color: #dcdcdc;
+    color: #bbbbbb;
+    border-bottom-width: 1px;
+  }
+  .tab-text {
+    width: 100px;
+    height: 50px;
+    color: #808080;
+    text-align: center;
+  }
+  .tab-text:active {
+    width: 100px;
+    height: 50px;
+    color: #ff0000;
+  }
+
+  .tab-content {
+    width: 100%;
+    height: 100%;
+  }
+
+  .channel-manage {
+    height: 40px;
+    width: 30px;
+  }
+
+  .empty-view {
+    height: 40px;
+    width: 16px;
+  }
+
+</style>

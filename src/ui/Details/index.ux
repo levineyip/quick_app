@@ -1,0 +1,90 @@
+
+<template>
+  <div class="demo-page">
+    <div class="demo-page" if="display">
+      <image src="{{details.cover}}"></image>
+      <text class="main-title">{{details.title}}</text>
+      <richtext type="html" class="content">{{details.content}}</richtext>
+      <div>
+        <text class="sub-title">{{details.source}}</text>
+        <text class="date-time">{{details.ptime}}</text>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import fetch from '@system.fetch'
+import prompt from '@system.prompt'
+export default {
+  public: {
+    newsId: '',
+    details: null,
+    display: false
+  },
+  onInit() {
+    console.info('onInit...' + this.newsId)
+    this.requestDetails(this.newsId)
+  },
+  requestDetails(newsId) {
+    fetch.fetch({
+      url: 'https://www.mxnzp.com/api/news/details?newsId=' + newsId,
+      method: 'get',
+      responseType: 'json'
+    }).then(response => {
+      this.details = response.data.data.data
+      this.display = true
+      this.details = response.data.data.data
+      console.info('details ==> ' + JSON.stringify(this.details))
+    }).catch(error => {
+      prompt.showToast({
+        message: 'response fail ==> code is ' + error.code + ', message is ' + error.message
+      })
+    })
+  }
+
+}
+</script>
+
+<style>
+  .demo-page {
+    flex-direction: column;
+  }
+
+  .main-title {
+    font-size: 50px;
+    height: 200px;
+    width: 100%;
+    padding: 16px;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    color: #000;
+    justify-content: center;
+  }
+
+  .content {
+    padding: 30px;
+    background-color: #ffffff;
+  }
+
+  .sub-title {
+    font-size: 30px;
+    height: 100px;
+    width: 50%;
+    padding: 16px;
+    left: 16px;
+    color: #db9b23;
+  }
+
+  .date-time {
+    font-size: 30px;
+    height: 100px;
+    width: 50%;
+    padding: 16px;
+    font-style: normal;
+    font-weight: 800;
+    color: #808080;
+    text-align: right;
+  }
+
+</style>

@@ -1,0 +1,55 @@
+
+<template>
+  <div class="demo-page">
+    <text class="title">{{text}}</text>
+    <input class="btnDialog" type="button" value="List页面" onclick="routePage('/ui/Channel')" />
+    <input class="btnDialog" type="button" value="Tab页面" onclick="routePage('/ui/TabTest')" />
+  </div>
+</template>
+
+<script>
+import router from '@system.router'
+export default {
+  private: {
+    text: 'UI汇总页面',
+  },
+  routePage(path) {
+    router.push ({
+      uri: path
+    })
+  }
+}
+</script>
+
+<style>
+  .demo-page {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .title {
+    font-size: 40px;
+    text-align: center;
+  }
+
+  .btn {
+    width: 550px;
+    height: 86px;
+    margin-top: 16px;
+    border-radius: 43px;
+    background-color: rgb(186, 7, 16);
+    font-size: 30px;
+    color: #ffffff;
+  }
+
+  .btnDialog {
+    width: 550px;
+    height: 86px;
+    margin-top: 16px;
+    border-radius: 43px;
+    background-color: #09ba07;
+    font-size: 30px;
+    color: #ffffff;
+  }
+</style>
